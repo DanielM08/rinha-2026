@@ -3,6 +3,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 
+from anyio import to_thread
 from fastapi import FastAPI
 
 logging.basicConfig(
@@ -20,6 +21,13 @@ _DEFAULT_REFERENCES_PATH = "resources/references.json.gz"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Cap the thread pool to match available CPU (0.45 cores).
+    # FastAPI runs sync def endpoints in anyio's thread pool (default: 40 threads).
+    # With 0.45 CPU, 40 threads fighting for the same core causes heavy context-
+    # switching. 4 threads keeps the queue predictable and eliminates thrashing.
+    limiter = to_thread.current_default_thread_limiter()
+    limiter.total_tokens = 4
+
     path = os.getenv("REFERENCES_PATH", _DEFAULT_REFERENCES_PATH)
     app.state.reference_index = ReferenceIndex(path)
     yield
