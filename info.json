@@ -1,0 +1,7 @@
+{
+    "participants": ["DanielM08"],
+    "social": [],
+    "source-code-repo": "https://github.com/DanielM08/rinha-2026",
+    "stack": ["python", "fastapi", "numpy", "nginx"],
+    "open_to_work": false
+}
